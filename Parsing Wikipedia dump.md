@@ -35,4 +35,5 @@ Select the row that 2 nodes both in nodes.txt
 awk 'NR==FNR { a[$0]; next }{ if($1 in a) if($2 in a) print $1" "$2;}' nodes.txt 20200220.txt > links.txt
 ```
 [reference1](https://libsq.tumblr.com/post/46678912694/parsing-wikipedias-pagelinks-sql-dump)
+
 [reference2](https://www.it1352.com/313854.html)
