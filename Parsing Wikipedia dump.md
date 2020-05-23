@@ -29,11 +29,18 @@ Select some nodes ID and write it into nodes.txt with one node per line
 ```bash
 shuf -i 2000-65000 -n 10 > nodes.txt
 ```
+or select nodes from list
+```python
+node = ['1594759','848289','39654996']
+f = open('nodes.txt','w')
+for i in node:
+    f.write(i+'\n')
+f.close()
+```
 
 Select the row that 2 nodes both in nodes.txt
 ```bash
 awk 'NR==FNR { a[int($0)]; next }{ if($1 in a) if($2 in a) print $1" "$2;}' nodes.txt 20200220.txt > links.txt
 ```
 [reference1](https://libsq.tumblr.com/post/46678912694/parsing-wikipedias-pagelinks-sql-dump)
-
 [reference2](https://www.it1352.com/313854.html)
