@@ -32,7 +32,7 @@ shuf -i 2000-65000 -n 10 > nodes.txt
 
 Select the row that 2 nodes both in nodes.txt
 ```bash
-awk 'NR==FNR { a[$0]; next }{ if($1 in a) if($2 in a) print $1" "$2;}' nodes.txt 20200220.txt > links.txt
+awk 'NR==FNR { a[int($0)]; next }{ if($1 in a) if($2 in a) print $1" "$2;}' nodes.txt 20200220.txt > links.txt
 ```
 [reference1](https://libsq.tumblr.com/post/46678912694/parsing-wikipedias-pagelinks-sql-dump)
 
