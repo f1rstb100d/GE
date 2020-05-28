@@ -81,7 +81,7 @@ Parameter:
 `window_size = 5`
 
 Main idea:
-1. Start with each node (num_walks) times with randomwalk lenth (walk_length), Then we get N * (num_walks) sentences with length (walk_length).
+1. Start with each node (num_walks) times with the maximum length randomwalk lenth (walk_length), Then we get N * (num_walks) sentences with max length (walk_length).
 
 2. Use Word2Vec (skip-gram) to train the model with all sentences.
 
