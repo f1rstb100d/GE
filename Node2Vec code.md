@@ -169,7 +169,7 @@ Parameter:
 `window_size = 5`
 
 Main idea:
-1. 对每一个节点创建它与其邻居的访问概率，由于边没有权值，所以访问下一个邻居的概率为$\frac{1}{nbr}$， 然后根据此概率创建节点的alias表，返回一个accept和alias
+1. 对每一个节点创建它与其邻居的访问概率，由于边没有权值，所以访问下一个邻居的概率为![](http://latex.codecogs.com/gif.latex?\\frac{1}{nbr})， 然后根据此概率创建节点的alias表，返回一个accept和alias
 ![](https://github.com/f1rstb100d/GE/blob/master/png/alias_table.png)</br>
 两个数组，一个里面存着第i列对应的事件i矩形站的面积百分比【也即其概率】，上图的话数组就为Prab[$\frac{2}{3}$, $1$, $\frac{1}{3}$, $\frac{1}{3}$]，另一个数组里面储存着第i列不是事件i的另外一个事件的标号，像上图就是Alias[2, NULL, 1, 1] 。
 2. 对有向图每一对边，同样计算边的结束节点的邻居的概率
