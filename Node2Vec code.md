@@ -177,9 +177,13 @@ Main idea:
 </br>![](https://github.com/f1rstb100d/GE/blob/master/png/node2vec_pq.png)</br>
 已有t到v边，找到所有v的邻居，如果还是t那么概率为![](http://latex.codecogs.com/gif.latex?\\frac{1}{p})，如果节点(x1)直接和t相连那么概率为![](http://latex.codecogs.com/gif.latex?1)，如果到t的路径距离大于1(x2, x3)那么概率为![](http://latex.codecogs.com/gif.latex?\\frac{1}{q})，同样将这个下一个节点选择概率list转换成alias_table的accept, alias格式。
 
-3. 然后以每个节点为起点进行num_walks次的随机游走，截取walk_length长度的游走路径(可以小于walk_length)。其中刚选定了第一个点，那么下一个点的选择使用步骤1中的概率表，选定完第二个点之后就会有一条路径，那么再下一个点以及之后的所有点都使用步骤2中的概率表。
+3. 然后以每个节点为起点进行num_walks次的随机游走，截取walk_length长度的游走路径(可以小于walk_length)。其中刚选定了第一个点（不考虑当前顶点之前访问的顶点），那么下一个点的选择使用步骤1中的概率表，选定完第二个点之后就会有一条路径，那么再下一个点以及之后的所有点都使用步骤2中的概率表。
 
 4. 最后使用Word2vec中的skip-gram模型训练生成的所有随机游走路径(句子)，得到每个节点的表示向量。
+
+参数 p 控制重复访问刚刚访问过的顶点的概率。 注意到 p 仅作用于 d = 0 的情况，而 d = 0 表示顶点 x 就是访问当前顶点 v 之前刚刚访问过的顶点。 那么若 p 较高，则访问刚刚访问过的顶点的概率会变低，反之变高。
+
+参数 q 控制着游走是向外还是向内，若 q > 1 ，随机游走倾向于访问和 t 接近的顶点(偏向BFS)。若  q < 1 ，倾向于访问远离 t 的顶点(偏向DFS)。
 
 [code reference](https://github.com/shenweichen/GraphEmbedding) and [dataset](https://github.com/thunlp/OpenNE/tree/master/data/wiki/Wiki_edgelist.txt)
 
