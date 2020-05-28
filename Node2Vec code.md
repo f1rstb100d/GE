@@ -170,7 +170,7 @@ Parameter:
 
 Main idea:
 1. 对每一个节点创建它与其邻居的访问概率，由于边没有权值，所以访问下一个邻居的概率为$\frac{1}{nbr}$， 然后根据此概率创建节点的alias表，返回一个accept和alias
- ![](https://github.com/f1rstb100d/GE/blob/master/png/alias_table.png)
+ ![](https://github.com/f1rstb100d/GE/blob/master/png/alias_table.png)</br>
 两个数组，一个里面存着第i列对应的事件i矩形站的面积百分比【也即其概率】，上图的话数组就为Prab[$\frac{2}{3}$, $1$, $\frac{1}{3}$, $\frac{1}{3}$]，另一个数组里面储存着第i列不是事件i的另外一个事件的标号，像上图就是Alias[2, NULL, 1, 1] 。
 2. 对有向图每一对边，同样计算边的结束节点的邻居的概率![](https://github.com/f1rstb100d/GE/blob/master/png/node2vec_pq.png)，已有t到v边，找到所有v的邻居，如果还是t那么概率为$\frac{1}{p}$，如果节点(x1)直接和t相连那么概率为$1$，如果到t的路径距离大于1(x2, x3)那么概率为$\frac{1}{q}$，同样将这个下一个节点选择概率list转换成alias_table的accept, alias格式。
 3. 然后以每个节点为起点进行num_walks次的随机游走，截取walk_length长度的游走路径(可以小于walk_length)。其中刚选定了第一个点，那么下一个点的选择使用步骤1中的概率表，选定完第二个点之后就会有一条路径，那么再下一个点以及之后的所有点都使用步骤2中的概率表。
