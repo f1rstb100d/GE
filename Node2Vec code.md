@@ -179,4 +179,5 @@ Main idea:
 4. 最后使用Word2vec中的skip-gram模型训练生成的所有随机游走路径(句子)，得到每个节点的表示向量。
 
 [code reference](https://github.com/shenweichen/GraphEmbedding) and [dataset](https://github.com/thunlp/OpenNE/tree/master/data/wiki/Wiki_edgelist.txt)
+
 [alias采样](https://blog.csdn.net/haolexiao/article/details/65157026)
