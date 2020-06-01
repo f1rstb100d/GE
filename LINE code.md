@@ -104,7 +104,7 @@ class LINE:
 
     def reset_model(self, opt='adam'):
         self.model, self.embedding_dict = create_model(self.node_size, self.rep_size, self.order)
-        self.model.compile(opt, line_loss)
+        self.model.compile(opt, line_loss) # 默认learning rate
         self.batch_it = self.batch_iter(self.node2idx)
 
     def _gen_sampling_table(self):
