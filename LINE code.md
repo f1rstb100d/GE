@@ -211,7 +211,7 @@ Main idea:
 
 3. 然后构造模型，输入为两个点的编号，然后embedding层得到向量，之后计算向量的内积，compile上自定义的损失函数（内积与真实标签1 -1的损失函数），所以模型是输入两个点编号输出内积，最后返回整个模型个第二层embedding层的表示向量
 
-4. 构造训练用的batch，对所有边随机以1024（batch_size）为块进行划分，对每一块中1024条边通过edge的alias表进行一次正采样（就是这1024条边）并打上标签1，再进行5（negative_ratio）次负采样，对于之前存在的h到t的边，h固定，使用node的alias表随机一个新的t（大概率是不存在边的），并打上标签-1。返回1024![](http://latex.codecogs.com/gif.latex?*)6条边，这其中1024条label为1，1024![](http://latex.codecogs.com/gif.latex?*)5条label为0
+4. 构造训练用的batch，对所有边随机以1024（batch_size）为块进行划分，对每一块中1024条边通过edge的alias表进行一次正采样（就是这1024条边）并打上标签1，再进行5（negative_ratio）次负采样，对于之前存在的h到t的边，h固定，使用node的alias表随机一个新的t（大概率是不存在边的），并打上标签-1。返回1024![](http://latex.codecogs.com/gif.latex?*)6条边，这其中1024条label为1，1024![](http://latex.codecogs.com/gif.latex?*)5条label为-1
 
 5. 计算一下一个epoch中有97个batch，然后用采样结果进行模型训练，得到每个节点的128（embedding_size）维向量
 
