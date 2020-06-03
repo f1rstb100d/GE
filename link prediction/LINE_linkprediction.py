@@ -11,6 +11,7 @@ from tensorflow.python.keras.models import Model
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, average_precision_score, f1_score, roc_auc_score
 
+
 def preprocess_nxgraph(graph):
     node2idx = {}
     idx2node = []
@@ -21,11 +22,12 @@ def preprocess_nxgraph(graph):
         node_size += 1
     return idx2node, node2idx
 
+
 def create_alias_table(area_ratio):
     l = len(area_ratio)
     accept, alias = [0] * l, [0] * l
     small, large = [], []
-    area_ratio_ = np.array(area_ratio) * l #list每一项乘2405
+    area_ratio_ = np.array(area_ratio) * l  # list每一项乘2405
     for i, prob in enumerate(area_ratio_):
         if prob < 1.0:
             small.append(i)
@@ -48,30 +50,35 @@ def create_alias_table(area_ratio):
         accept[small_idx] = 1
     return accept, alias
 
+
 def alias_sample(accept, alias):
     N = len(accept)
-    i = int(np.random.random()*N)
+    i = int(np.random.random() * N)
     r = np.random.random()
     if r < accept[i]:
         return i
     else:
         return alias[i]
-    
+
+
 def line_loss(y_true, y_pred):
-    return -K.mean(K.log(K.sigmoid(y_true*y_pred)))
+    return -K.mean(K.log(K.sigmoid(y_true * y_pred)))
+
 
 def create_model(numNodes, embedding_size, order='second'):
-    v_i = Input(shape=(1,)) #输入是一维数组，数组中有1个元素
+    v_i = Input(shape=(1,))  # 输入是一维数组，数组中有1个元素
     v_j = Input(shape=(1,))
     first_emb = Embedding(numNodes, embedding_size, name='first_emb')
-    second_emb = Embedding(numNodes, embedding_size, name='second_emb')# 该顶点本身的表示向量
-    context_emb = Embedding(numNodes, embedding_size, name='context_emb')# 该点作为其他顶点的上下文(邻居)顶点时的表示向量
+    second_emb = Embedding(numNodes, embedding_size, name='second_emb')  # 该顶点本身的表示向量
+    context_emb = Embedding(numNodes, embedding_size, name='context_emb')  # 该点作为其他顶点的上下文(邻居)顶点时的表示向量
     v_i_emb = first_emb(v_i)
     v_j_emb = first_emb(v_j)
     v_i_emb_second = second_emb(v_i)
     v_j_context_emb = context_emb(v_j)
-    first = Lambda(lambda x: tf.reduce_sum(x[0]*x[1], axis=-1, keep_dims=False), name='first_order')([v_i_emb, v_j_emb])
-    second = Lambda(lambda x: tf.reduce_sum(x[0]*x[1], axis=-1, keep_dims=False), name='second_order')([v_i_emb_second, v_j_context_emb]) # 内积
+    first = Lambda(lambda x: tf.reduce_sum(x[0] * x[1], axis=-1, keep_dims=False), name='first_order')(
+        [v_i_emb, v_j_emb])
+    second = Lambda(lambda x: tf.reduce_sum(x[0] * x[1], axis=-1, keep_dims=False), name='second_order')(
+        [v_i_emb_second, v_j_context_emb])  # 内积
     if order == 'first':
         output_list = [first]
     elif order == 'second':
@@ -80,8 +87,7 @@ def create_model(numNodes, embedding_size, order='second'):
         output_list = [first, second]
     model = Model(inputs=[v_i, v_j], outputs=output_list)
     return model, {'first': first_emb, 'second': second_emb}
-	
-	
+
 class LINE:
     def __init__(self, graph, embedding_size=8, negative_ratio=5, order='second',):
         if order not in ['first', 'second', 'all']:
@@ -191,62 +197,6 @@ class LINE:
         hist = self.model.fit_generator(self.batch_it, epochs=epochs, initial_epoch=initial_epoch, steps_per_epoch=self.steps_per_epoch, verbose=verbose) # params = <class 'dict'>: {'batch_size': None, 'epochs': 50, 'steps': 97, 'samples': 97, 'verbose': 2, 'do_validation': False, 'metrics': ['loss']}
         return hist
 
-    def __init__(self, graph, walk_length, num_walks, p=1.0, q=1.0, workers=1):
-        self.graph = graph
-        self._embeddings = {}
-        self.walker = RandomWalker(graph, p=p, q=q)
-        print("Preprocess transition probs...")
-        self.walker.preprocess_transition_probs()
-        self.sentences = self.walker.simulate_walks(num_walks=num_walks, walk_length=walk_length, workers=workers, verbose=1)
-
-    def train(self, embed_size=128, window_size=5, workers=3, iter=5, **kwargs):
-        kwargs["sentences"] = self.sentences
-        kwargs["min_count"] = kwargs.get("min_count", 0)
-        kwargs["size"] = embed_size
-        kwargs["sg"] = 1 # skip-gram
-        kwargs["hs"] = 0  # node2vec not use Hierarchical Softmax
-        kwargs["workers"] = workers
-        kwargs["window"] = window_size
-        kwargs["iter"] = iter
-        print("Learning embedding vectors...")
-        model = Word2Vec(**kwargs)
-        print("Learning embedding vectors done!")
-        self.w2v_model = model
-        return model
-
-    def get_embeddings(self,):
-        self._embeddings = {}
-        for word in self.graph.nodes():
-            self._embeddings[word] = self.w2v_model.wv[word]
-        return self._embeddings
-
-    def __init__(self, graph, walk_length, num_walks):
-        self.graph = graph
-        self.w2v_model = None
-        self._embeddings = {}
-        self.walker = RandomWalker(graph)
-        self.sentences = self.walker.simulate_walks(num_walks=num_walks, walk_length=walk_length)
-
-    def train(self, embed_size=128, window_size=5, workers=3, iter=5, **kwargs):
-        kwargs["sentences"] = self.sentences
-        kwargs["min_count"] = kwargs.get("min_count", 0)
-        kwargs["size"] = embed_size
-        kwargs["sg"] = 1  # skip gram
-        kwargs["hs"] = 1  # deepwalk use Hierarchical Softmax
-        kwargs["workers"] = workers
-        kwargs["window"] = window_size
-        kwargs["iter"] = iter
-        print("Learning embedding vectors...")
-        model = Word2Vec(**kwargs)
-        print("Learning embedding vectors done!")
-        self.w2v_model = model
-        return model
-
-    def get_embeddings(self):
-        self._embeddings = {}
-        for word in self.graph.nodes():
-            self._embeddings[word] = self.w2v_model.wv[word]
-        return self._embeddings
 def split_train_test_graph(input_edgelist, seed, testing_ratio=0.01, weighted=False):
     if (weighted):
         G = nx.read_weighted_edgelist(input_edgelist)
