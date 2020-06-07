@@ -36,3 +36,10 @@ anaconda search -t conda stellargraph
 anaconda show stellargraph/stellargraph
 conda install --channel https://conda.anaconda.org/stellargraph stellargraph
 ```
+
+pycharm使用虚拟环境报错，添加环境变量（第三条）
+```
+C:\Users\F1rstb100d\anaconda3\envs\stellarg
+C:\Users\F1rstb100d\anaconda3\envs\stellarg\Scripts
+C:\Users\F1rstb100d\anaconda3\envs\stellarg\Library\bin
+```
