@@ -242,4 +242,5 @@ if __name__ == "__main__":
     model = SDNE(nx.read_edgelist('graph_train.edgelist', create_using=nx.DiGraph(), nodetype=None), hidden_size=[256, 128],)
     model.train(batch_size=3000, epochs=40, verbose=2)
     embeddings = model.get_embeddings()
+	# link prediction reference: https://github.com/xiangyue9607/BioNEV
     result = LinkPrediction(embeddings, G, G_train, testing_pos_edges, seed=0)

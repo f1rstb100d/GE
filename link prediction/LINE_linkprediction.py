@@ -301,4 +301,5 @@ if __name__ == "__main__":
     model = LINE(nx.read_edgelist('graph_train.edgelist', create_using=nx.DiGraph(), nodetype=None), embedding_size=128, order='second')
     model.train(batch_size=1024, epochs=50, verbose=2)
     embeddings = model.get_embeddings()
+	# link prediction reference: https://github.com/xiangyue9607/BioNEV
     result = LinkPrediction(embeddings, G, G_train, testing_pos_edges, seed=0)

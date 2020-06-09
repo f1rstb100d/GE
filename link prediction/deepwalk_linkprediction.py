@@ -170,4 +170,5 @@ if __name__ == "__main__":
     model = DeepWalk(nx.read_edgelist('graph_train.edgelist', create_using=nx.DiGraph(), nodetype=None), walk_length=10, num_walks=80)
     model.train(window_size=5, iter=3)
     embeddings = model.get_embeddings()
+	# link prediction reference: https://github.com/xiangyue9607/BioNEV
     result = LinkPrediction(embeddings, G, G_train, testing_pos_edges, seed=0)
