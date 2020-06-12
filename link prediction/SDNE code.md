@@ -155,7 +155,9 @@ Parameter:
 
 Main idea:
 1. 由图构造邻接矩阵A，然后构造拉普拉斯矩阵L。[参考](https://blog.csdn.net/qq_30159015/article/details/83271065)
+
 2. 构造神经网络，输入[A, L]，A后面接个256全连接Dense层，再接个128全连接Dense层，一边输出为Y，一边再接个256全连接Dense层，最后接个和A一样大的Dense层，输出为A_。损失函数是将[A, L]和[A_, Y]做对比计算优化参数。最后通过输入A，得到Y得到128维的embedding向量。
+
 3. 然后把整个A L直接全部训练40(epochs)次，得到model，从而得到每个节点的128维embedding向量。
 
 [code reference](https://github.com/shenweichen/GraphEmbedding) and [dataset](https://github.com/thunlp/OpenNE/tree/master/data/wiki/Wiki_edgelist.txt)
