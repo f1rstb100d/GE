@@ -48,13 +48,14 @@ snapshots下有8个文件，分别是是8个时间片段的截图，每行的格
 
 dyngem.py
 ```python
-import networkx as nx
-import keras
+import networkx as nx # version=1.11
+import keras # version<=2.2.4
 from keras.models import Model, Sequential, load_model
 from keras.layers  import Dense, Input, Embedding, Reshape,  Lambda
 from keras import backend as K, regularizers
 import numpy as np
 from functools import reduce
+# tensorflow version=1.13.1
 
 dynamic_series = []
 activation_fn = 'relu'
@@ -62,6 +63,7 @@ activation_fn_embedding_layer='relu'
 loss_function = 'binary_crossentropy'
 dynamic_model_build_epochs_number = 300
 
+'''
 #Loss Function for preserving First and Second Order
 def build_reconstruction_loss(beta):
     """
@@ -86,7 +88,7 @@ def edge_wise_loss(true_y, embedding_diff):
     # true_y supposed to be None
     # we don't use it
     return K.mean(K.sum(K.square(embedding_diff), axis=1))  # mean square error
-
+'''
 
 #Loading Snapshot Pickled With networkx 1.11
 def loadRealGraphSeries(file_prefix, startId, endId):
@@ -113,7 +115,7 @@ def get_embedding(encoder, graph_name, output_name):
     g = nx.read_edgelist(graph_name, create_using=nx.Graph())
     g = nx.convert_node_labels_to_integers(g)
     graph = g
-    N = graph.number_of_nodes()
+    # N = graph.number_of_nodes()
     adj_mat = nx.adjacency_matrix(graph).toarray()
     embedding = encoder.predict(adj_mat)
     np.savetxt(output_name,embedding)
@@ -260,12 +262,22 @@ print("******************* Embedding ************************")
 
 # encoder = get_encoder(f_model, input_layer_name)
 # get_embedding(encoder,"graphs/final_graph.txt", "embedding/final_output.embedding")
+
+model = load_model("models/prev_model_7.h5")
+encoder = get_encoder(model, input_layer_name)
+get_embedding(encoder,"snapshots/s7.txt", "final_output.embedding")
 ```
+1. 图的节点数是递增的，第一个图有91个节点，所以构造一个层数为[91,88,66,44,22,44,66,88,91]的encoder和decoder全连接神经网络，其中有22个节点层为embedding的向量，输入和输出为同一个91x91的邻接矩阵，一次训练一个的话就会有91个batches，第一次将整个邻接矩阵训练300个epochs.
+
+2. 第二个图有123个节点，先加载进来上一次训练的神经网络，第一层为新加入的123节点层，第二层为新加入的91节点层，后面依次加入上一个训练好的模型（除掉上一个模型的第一层），最后加入一个新的123层output，所以最后第二次的神经网络为[123,91(新构建的无参数训练过),88,66,44,22,44,66,88,91,123]。输入和输出为同一个123x123的邻接矩阵，一次训练一个的话就会有123个batches，第一次将整个邻接矩阵训练100个epochs.
+
+3. 直到训练完最后一个图，取其前半部分encoder得到的22维embedding向量，重新输入同一个邻接矩阵，在embedding层停止得到输出，即为每个节点的22维embedding向量。
+
 
 link_prediction.py
 ```python
 import numpy as np
-from sklearn import metrics
+from sklearn import metrics # version=0.20.1
 from sklearn.model_selection import train_test_split
 import networkx as nx
 from keras.models import Model, Sequential, load_model
@@ -327,3 +339,7 @@ plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
 plt.show()
 ```
+对最后的模型同样还输入最后一个图的邻接矩阵，得到个预测的邻接矩阵，对比这两个邻接矩阵得到预测的AUC
+
+
+[code reference](https://github.com/paulpjoby/DynGEM) and [dataset](https://github.com/paulpjoby/DynGEM/tree/master/datasets/haggle_snapshots/snapshots)
