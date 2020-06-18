@@ -69,12 +69,18 @@ fileObject = open('jsonFile.json', 'w')
 fileObject.write(jsObj)
 fileObject.close()
 ```
+or use bash:
+```bash
+grep -P -o "\(1594759,0,'.*?'," enwiki-20200101-page.sql | sed "s/([0-9]\+,0,'//g" | sed "s/',//g"
+```
+[reference](https://www.thinbug.com/q/23454172)
+[reference](https://www.cnblogs.com/aaronhoo/p/5284991.html)
 
 ----------------------------------
 
 Parsing Wikipedia xml dump:
 ```bash
-awk '/<title>Leaf vegetable</,/<page>/' enwiki-20200201-pages-articles_1.xml > 1.txt
+awk '/<title>Leaf vegetable</,/<page>/' enwiki-20200201-pages-articles.xml | grep -Po "\[\[Category:(.*?)\]\]" | sed "s/\[\[Category://g" | sed "s/| ]]//g" | sed "s/]]//g"
 ```
 [reference](https://www.itranslater.com/qa/details/2120742941919544320)
 
