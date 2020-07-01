@@ -13,8 +13,8 @@ def split_xml(filename):
         chunkfile.write(line)
         if b'</page>' in line:
             pagecount += 1
-            print(pagecount)
-        if pagecount > 999: #实际文件填了1000个<page>标签
+            print(filecount, pagecount)
+        if pagecount > 199999: #实际文件填了200000个<page>标签
             # print(chunkname()) # For Debugging
             chunkfile.write(b"</mediawiki>")
             chunkfile.close()
@@ -28,4 +28,4 @@ def split_xml(filename):
         print('Files already close')
 
 if __name__ == '__main__':
-    split_xml('enwiki-20200301-pages-articles.xml.bz2')
+    split_xml('enwiki-20200220-pages-articles.xml.bz2')
