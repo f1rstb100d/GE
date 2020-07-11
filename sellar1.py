@@ -12,30 +12,6 @@ from stellargraph.core.graph import StellarGraph
 from stellargraph.core.schema import GraphSchema
 from scipy import stats
 from scipy.special import softmax
-import json
-
-
-contents = {}
-with open('../retitle0101.json', 'r', encoding='utf-8') as j:
-    contents[0] = json.loads(j.read())
-with open('../retitle0120.json', 'r', encoding='utf-8') as j:
-    contents[1] = json.loads(j.read())
-with open('../retitle0201.json', 'r', encoding='utf-8') as j:
-    contents[2] = json.loads(j.read())
-with open('../retitle0220.json', 'r', encoding='utf-8') as j:
-    contents[3] = json.loads(j.read())
-with open('../retitle0301.json', 'r', encoding='utf-8') as j:
-    contents[4] = json.loads(j.read())
-with open('../retitle0401.json', 'r', encoding='utf-8') as j:
-    contents[5] = json.loads(j.read())
-with open('../retitle0420.json', 'r', encoding='utf-8') as j:
-    contents[6] = json.loads(j.read())
-with open('../retitle0501.json', 'r', encoding='utf-8') as j:
-    contents[7] = json.loads(j.read())
-with open('../retitle0520.json', 'r', encoding='utf-8') as j:
-    contents[8] = json.loads(j.read())
-with open('../retitle0601.json', 'r', encoding='utf-8') as j:
-    contents[9] = json.loads(j.read())
 
 
 edges = pd.read_csv(
@@ -139,12 +115,12 @@ class TemporalRandomWalk():
 
             remaining_length = self.num_cw - num_cw_curr + self.cw_size - 1
 
-            walk_id, walk = self._walk(
+            walk = self._walk(
                 src, dst, t, min(self.max_walk_length, remaining_length), self.walk_bias, np_rs
             )
-            if len(walk_id) >= self.cw_size:
+            if len(walk) >= self.cw_size:
                 walks.append(walk)
-                num_cw_curr += len(walk_id) - self.cw_size + 1
+                num_cw_curr += len(walk) - self.cw_size + 1
                 successes += 1
             else:
                 failures += 1
@@ -165,19 +141,27 @@ class TemporalRandomWalk():
             return np_rs.choice(n)
 
     def _exp_biases(self, times, t_0, decay):
+        # t_0 assumed to be smaller than all time values
         return softmax(t_0 - np.array(times) if decay else np.array(times) - t_0)
 
     def _temporal_biases(self, times, time, bias_type, is_forward):
         if bias_type is None:
+            # default to uniform random sampling
             return None
+
+        # time is None indicates we should obtain the minimum available time for t_0
         t_0 = time if time is not None else min(times)
 
         if bias_type == "exponential":
+            # exponential decay bias needs to be reversed if looking backwards in time
             return self._exp_biases(times, t_0, decay=is_forward)
         else:
             raise ValueError("Unsupported bias type")
 
     def _step(self, node, time, bias_type, np_rs):
+        """
+        Perform 1 temporal step from a node. Returns None if a dead-end is reached.
+        """
         neighbours, times = self.graph.neighbor_arrays(node, include_edge_weight=True)
         neighbours = neighbours[times >= time]
         times = times[times >= time]
@@ -192,22 +176,18 @@ class TemporalRandomWalk():
             return None
 
     def _walk(self, src, dst, t, length, bias_type, np_rs):
-        walk_id = [src, dst]
-        walk = []
-        walk.extend(contents[t][src].split())
-        walk.extend(contents[t][dst].split())
+        walk = [src, dst]
         node, time = dst, t
         for _ in range(length - 2):
             result = self._step(node, time=time, bias_type=bias_type, np_rs=np_rs)
 
             if result is not None:
                 node, time = result
-                walk_id.append(node)
-                walk.extend(contents[time][node].split())
+                walk.append(node)
             else:
                 break
 
-        return walk_id, walk
+        return walk
 
 
 temporal_rw = TemporalRandomWalk(graph)
@@ -218,8 +198,6 @@ t = 0
 for i in temporal_walks:
     t += len(i)
 print(t)
-
-
 
 embedding_size = 128
 temporal_model = Word2Vec(
@@ -329,8 +307,6 @@ link_examples_train, link_labels_train = labelled_links(pos_train, neg_train)
 link_examples_test, link_labels_test = labelled_links(pos_test, neg_test)
 
 
-
-
 unseen_node_embedding = np.zeros(embedding_size)
 
 
@@ -339,25 +315,6 @@ def temporal_embedding(u):
         return temporal_model.wv[u]
     except KeyError:
         return unseen_node_embedding
-
-
-
-
-
-# 把单个单词的向量合并成节点向量
-with open('../retitle0620.json', 'r', encoding='utf-8') as j:
-    contents[10] = json.loads(j.read())
-node_embedding = {}
-for key,value in contents[10].items():
-    tmp = np.zeros(embedding_size)
-    for word in value.split():
-        tmp += np.array(temporal_embedding(word))
-    tmp = tmp / len(value.split())
-    node_embedding[key] = tmp.tolist()
-
-
-
-
 
 
 def operator_l2(u, v):
@@ -372,13 +329,13 @@ def link_examples_to_features(link_examples, transform_node):
         if isinstance(binary_operator, str)
         else binary_operator
     )
-    return [op_func(transform_node[src], transform_node[dst]) for src, dst in link_examples]
+    return [op_func(transform_node(src), transform_node(dst)) for src, dst in link_examples]
 
 
 
 temporal_clf = LogisticRegression(solver='lbfgs', max_iter=5000)
-temporal_link_features_train = link_examples_to_features(link_examples_train, node_embedding)
-temporal_link_features_test = link_examples_to_features(link_examples_test, node_embedding)
+temporal_link_features_train = link_examples_to_features(link_examples_train, temporal_embedding)
+temporal_link_features_test = link_examples_to_features(link_examples_test, temporal_embedding)
 
 temporal_clf.fit(temporal_link_features_train, link_labels_train)
 
